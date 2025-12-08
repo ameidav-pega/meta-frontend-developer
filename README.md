@@ -39,3 +39,9 @@ The dev server defaults to `http://localhost:5173`.
 - Validation: non-past dates, required time, guest count, required name/email, optional phone pattern; inline errors with `aria-*`.
 - Responsive layout, focus-visible states, deterministic time slots in 15-minute increments by date.
 - Branded assets: header (`src/assets/logos/Asset 14@4x.png`), footer (`src/assets/logos/Asset 18@4x.png`), hero image (`src/assets/ll-food-hero.png`).
+
+## GitHub Pages
+
+- Live URL (after Actions runs): `https://ameidav-pega.github.io/meta-frontend-developer/`
+- Deploy workflow: `.github/workflows/deploy.yml` builds on pushes to `main` and publishes `dist` to GitHub Pages.
+- Vite `base` is set to `/meta-frontend-developer/` for correct asset paths on Pages.
