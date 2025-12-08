@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         env:
           CI: true
-        run: npx vitest run --reporter=dot --runInBand
+        run: npm test -- --run --reporter=dot
 
       - name: Build
         run: npm run build
