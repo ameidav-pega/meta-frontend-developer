@@ -68,6 +68,7 @@ function App() {
   const [availableTimes, setAvailableTimes] = useState(() => generateTimes(defaultDateTime.date))
   const [step, setStep] = useState('availability')
   const [bookings, setBookings] = useState([])
+  const [navOpen, setNavOpen] = useState(false)
   const [reservation, setReservation] = useState(() => ({
     date: defaultDateTime.date,
     time: defaultDateTime.time,
@@ -106,6 +107,8 @@ function App() {
     setReservation((prev) => ({ ...prev, date, time, guests }))
     setStep('details')
   }
+
+  const closeNav = () => setNavOpen(false)
 
   const handleDetailsSubmit = (details) => {
     const completed = {
@@ -233,13 +236,38 @@ function App() {
           <div className="brand">
             <img src={headerLogo} alt="Little Lemon" />
           </div>
-          <nav aria-label="Primary">
-            <a href="#booking">Home</a>
-            <a href="#menu">Menu</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
+          <button
+            className="nav-toggle"
+            aria-expanded={navOpen}
+            aria-controls="primary-nav"
+            onClick={() => setNavOpen((open) => !open)}
+          >
+            <span className="sr-only">Toggle navigation</span>
+            <span />
+            <span />
+            <span />
+          </button>
+          <nav
+            id="primary-nav"
+            aria-label="Primary"
+            className={navOpen ? 'open' : ''}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <a href="#booking" onClick={closeNav}>
+              Home
+            </a>
+            <a href="#menu" onClick={closeNav}>
+              Menu
+            </a>
+            <a href="#about" onClick={closeNav}>
+              About
+            </a>
+            <a href="#contact" onClick={closeNav}>
+              Contact
+            </a>
           </nav>
         </div>
+        {navOpen ? <div className="nav-backdrop" onClick={closeNav} /> : null}
       </header>
 
       <main className="shell">
