@@ -10,6 +10,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  width: 100%;
 }
 
 .topbar__inner {
@@ -431,6 +432,7 @@ select[aria-invalid='true'] {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 64px;
 }
 
 .footer__inner p {
@@ -490,7 +492,10 @@ select[aria-invalid='true'] {
 
   .footer__inner {
     padding: 16px;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 }

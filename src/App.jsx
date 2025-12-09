@@ -240,9 +240,9 @@ function App() {
             className="nav-toggle"
             aria-expanded={navOpen}
             aria-controls="primary-nav"
+            aria-label="Toggle navigation"
             onClick={() => setNavOpen((open) => !open)}
           >
-            <span className="sr-only">Toggle navigation</span>
             <span />
             <span />
             <span />
