@@ -7,38 +7,70 @@ import headerLogo from './assets/logos/Asset 14@4x.png'
 import footerLogo from './assets/logos/Asset 18@4x.png'
 import './App.css'
 
-const parseLocalDate = (value) => {
-  if (!value) return new Date()
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, (month || 1) - 1, day || 1)
-}
+const toInputDate = (date) => date.toISOString().split('T')[0]
+
+const OPEN_HOUR = 11
+const OPEN_MINUTE = 0
+const CLOSE_HOUR = 21
+const CLOSE_MINUTE = 30
+const SLOT_MINUTES = 30
 
 const generateTimes = (dateValue) => {
-  const baseDate = parseLocalDate(dateValue)
-  const start = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 17, 0, 0)
-  const end = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 21, 30, 0)
+  if (!dateValue) return []
+  const [year, month, day] = dateValue.split('-').map(Number)
+  const start = new Date(year, (month || 1) - 1, day || 1, OPEN_HOUR, OPEN_MINUTE, 0)
+  const end = new Date(year, (month || 1) - 1, day || 1, CLOSE_HOUR, CLOSE_MINUTE, 0)
   const slots = []
-  while (start <= end) {
-    const hours = start.getHours().toString().padStart(2, '0')
-    const minutes = start.getMinutes().toString().padStart(2, '0')
+  const cursor = new Date(start)
+  while (cursor <= end) {
+    const hours = cursor.getHours().toString().padStart(2, '0')
+    const minutes = cursor.getMinutes().toString().padStart(2, '0')
     slots.push(`${hours}:${minutes}`)
-    start.setMinutes(start.getMinutes() + 15)
+    cursor.setMinutes(cursor.getMinutes() + SLOT_MINUTES)
   }
-  const offset = new Date(dateValue).getDate() % 3
-  return slots.slice(offset, slots.length - offset)
+  return slots
 }
 
-const todayAsInputValue = () => new Date().toISOString().split('T')[0]
+const computeDefaultDateTime = () => {
+  const now = new Date()
+  const target = new Date(now.getTime() + 2 * 60 * 60 * 1000)
+
+  const buildSlot = (date) => ({
+    openStart: new Date(date.getFullYear(), date.getMonth(), date.getDate(), OPEN_HOUR, OPEN_MINUTE, 0),
+    lastSlot: new Date(date.getFullYear(), date.getMonth(), date.getDate(), CLOSE_HOUR, CLOSE_MINUTE, 0),
+  })
+
+  const todaySlots = buildSlot(target)
+
+  if (target < todaySlots.openStart) {
+    return { date: toInputDate(target), time: '11:00' }
+  }
+
+  const timesForDay = generateTimes(toInputDate(target))
+  if (target <= todaySlots.lastSlot) {
+    const candidateTime = `${target.getHours().toString().padStart(2, '0')}:${target
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`
+    const nextSlot = timesForDay.find((slot) => slot >= candidateTime) ?? timesForDay[0]
+    return { date: toInputDate(target), time: nextSlot }
+  }
+
+  const nextDay = new Date(target)
+  nextDay.setDate(nextDay.getDate() + 1)
+  const nextDaySlots = generateTimes(toInputDate(nextDay))
+  return { date: toInputDate(nextDay), time: nextDaySlots[0] ?? '' }
+}
 
 function App() {
-  const today = todayAsInputValue()
-  const [selectedDate, setSelectedDate] = useState(today)
-  const [availableTimes, setAvailableTimes] = useState(() => generateTimes(today))
+  const defaultDateTime = computeDefaultDateTime()
+  const [selectedDate, setSelectedDate] = useState(defaultDateTime.date)
+  const [availableTimes, setAvailableTimes] = useState(() => generateTimes(defaultDateTime.date))
   const [step, setStep] = useState('availability')
   const [bookings, setBookings] = useState([])
   const [reservation, setReservation] = useState(() => ({
-    date: today,
-    time: generateTimes(today)[0] ?? '',
+    date: defaultDateTime.date,
+    time: defaultDateTime.time,
     guests: 2,
     fullName: '',
     email: '',
@@ -60,10 +92,14 @@ function App() {
   }, [availableTimes])
 
   const handleDateChange = (nextDate) => {
-    setSelectedDate(nextDate)
     const slots = generateTimes(nextDate)
+    setSelectedDate(nextDate)
     setAvailableTimes(slots)
-    setReservation((prev) => ({ ...prev, date: nextDate, time: slots[0] ?? '' }))
+    setReservation((prev) => ({
+      ...prev,
+      date: nextDate,
+      time: slots.includes(prev.time) ? prev.time : slots[0] ?? '',
+    }))
   }
 
   const handleAvailabilitySubmit = ({ date, time, guests }) => {
@@ -85,12 +121,13 @@ function App() {
   }
 
   const handleReset = () => {
-    const slots = generateTimes(today)
-    setSelectedDate(today)
+    const nextDefaults = computeDefaultDateTime()
+    const slots = generateTimes(nextDefaults.date)
+    setSelectedDate(nextDefaults.date)
     setAvailableTimes(slots)
     setReservation({
-      date: today,
-      time: slots[0] ?? '',
+      date: nextDefaults.date,
+      time: slots.includes(nextDefaults.time) ? nextDefaults.time : slots[0] ?? '',
       guests: 2,
       fullName: '',
       email: '',
